@@ -2,7 +2,6 @@ import cv2
 from deepface import DeepFace
 
 face_cascade_data = cv2.CascadeClassifier('/Users/mustak/Desktop/uni/RT/project/haarcascade_frontalface_default.xml')
-print(face_cascade_data)
 
 def captureVideo():
     return cv2.VideoCapture(0)
@@ -12,11 +11,10 @@ def faceDetaction(frame):
     return face_cascade_data.detectMultiScale(gray,1.1,4)
 
 def emotionDetaction(frame):
+    print(frame)
     result = DeepFace.analyze(img_path = frame , actions=['emotion'], enforce_detection=False )
-    print(type(result))
-    print(result)
-    print(result[0]['dominant_emotion'])
     emotion = result[0]['dominant_emotion']
+
     return str(emotion)
 
 def showResultInlive(frame,txt):
@@ -27,15 +25,11 @@ def showResultInlive(frame,txt):
 
 captureVideoFrame = captureVideo()
 
-
 while True:
     ret,frame = captureVideoFrame.read()
 
     allFaces = faceDetaction(frame)
-
-    print(allFaces)
     for (x,y,w,h) in allFaces:
-        # print(x,y,w,h)
         cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),3)
 
     emotionName = emotionDetaction(frame)
@@ -48,4 +42,4 @@ while True:
         break
 
 captureVideoFrame.release()
-cv2.destroyAllWindows()
+cv2.destroyAllWindows('q')
