@@ -1,45 +1,45 @@
 import cv2
-from deepface import DeepFace
+import numpy as np
+from keras.models import load_model
 
-face_cascade_data = cv2.CascadeClassifier('/Users/mustak/Desktop/uni/RT/project/haarcascade_frontalface_default.xml')
+model=load_model('model_file_30epochs.h5')
 
-def captureVideo():
-    return cv2.VideoCapture(0)
+video=cv2.VideoCapture(0)
 
-def faceDetaction(frame):
-    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    return face_cascade_data.detectMultiScale(gray,1.1,4)
+faceDetectionFrame = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-def emotionDetaction(frame):
-    print(frame)
-    result = DeepFace.analyze(img_path = frame , actions=['emotion'], enforce_detection=False )
-    emotion = result[0]['dominant_emotion']
-
-    return str(emotion)
-
-def showResultInlive(frame,txt):
-    cv2.putText(frame,txt,(50,50),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3)
-    cv2.imshow('frame',frame)
-
-
-
-captureVideoFrame = captureVideo()
+labels_of_expression={0:'Angry',1:'Disgust', 2:'Fear', 3:'Happy',4:'Neutral',5:'Sad',6:'Surprise'}
 
 while True:
-    ret,frame = captureVideoFrame.read()
+    ret,frame=video.read()
+    gray=cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    all_faces = faceDetectionFrame.detectMultiScale(gray, 1.3, 3)
 
-    allFaces = faceDetaction(frame)
-    for (x,y,w,h) in allFaces:
-        cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),3)
+    for x,y,w,h in all_faces:
+        sub_face_img=gray[y:y+h, x:x+w]
+        resized=cv2.resize(sub_face_img,(48,48))
+        normalize=resized/255.0
+        reshaped=np.reshape(normalize, (1, 48, 48, 1))
+        result=model.predict(reshaped)
+        label=np.argmax(result, axis=1)[0]
+        print(label)
 
-    emotionName = emotionDetaction(frame)
-    # txt = "Face"
-
-    showResultInlive(frame,emotionName)
-
-    # cnt+q for quit
-    if cv2.waitKey(1) & 0xff == ord('q'):
+        cv2.rectangle(frame, (x,y), (x+w, y+h), (0,0,255), 1)
+        cv2.rectangle(frame,(x,y),(x+w,y+h),(50,50,255),2)
+        cv2.rectangle(frame,(x,y-40),(x+w,y),(50,50,255),-1)
+        
+        cv2.putText(
+            frame, 
+            labels_of_expression[label], 
+            (x, y-10),
+            cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,255,255),
+            2
+        )
+        
+    cv2.imshow("Frame",frame)
+    k=cv2.waitKey(1)
+    if k==ord('q'):
         break
 
-captureVideoFrame.release()
-cv2.destroyAllWindows('q')
+video.release()
+cv2.destroyAllWindows()
