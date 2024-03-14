@@ -80,7 +80,7 @@ for root, dirs, files in os.walk(test_path):
 print("TOTAL_TRAIN_IMAGES ==", count_train_imgs)
 print("TOTAL_TEST_IMAGES ==", count_test_imgs)
 
-epochs = 2
+epochs = 30
 
 history = model.fit(train_generator,
                     steps_per_epoch=count_train_imgs//32,
@@ -88,4 +88,4 @@ history = model.fit(train_generator,
                     validation_data=test_generator,
                     validation_steps=count_test_imgs//32)
 
-model.save('model_file_30epochs.h5')
+model.save('model_final.h5')
